@@ -1,0 +1,16 @@
+HELP.md
+/target/
+/build/
+/.idea/
+/*.iml
+.gradle/
+.mvn/
+node_modules/
+dist/
+*.log
+.env
+*.env
+application.properties
+application-*.properties
+.DS_Store
+Thumbs.db
