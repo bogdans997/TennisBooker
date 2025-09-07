@@ -5,32 +5,19 @@ import com.example.tennisbokker.dto.ResponseCourtDto;
 import com.example.tennisbokker.entity.Court;
 import com.example.tennisbokker.entity.Club;
 
-public class CourtMapper {
-    public static ResponseCourtDto toDto(Court court) {
-        return new ResponseCourtDto(
-                court.getId(),
-                court.getName(),
-                court.getSurfaceType(),
-                court.getPriceSingle(),
-                court.getPriceDouble(),
-                court.getClub() != null ? court.getClub().getId() : null,
-                court.getClub() != null ? court.getClub().getName() : null
-        );
-    }
+public final class CourtMapper {
 
-    public static Court toEntity(CourtDto dto) {
-        if (dto == null) return null;
-        Court court = new Court();
-        court.setId(dto.getId());
-        court.setName(dto.getName());
-        court.setSurfaceType(dto.getSurfaceType());
-        court.setPriceSingle(dto.getPriceSingle());
-        court.setPriceDouble(dto.getPriceDouble());
-        if (dto.getClubId() != null) {
-            Club club = new Club();
-            club.setId(dto.getClubId());
-            court.setClub(club);
-        }
-        return court;
+    private CourtMapper() {}
+
+    public static ResponseCourtDto toDto(Court c) {
+        return new ResponseCourtDto(
+                c.getId(),
+                c.getName(),
+                c.getSurfaceType(),
+                c.getPriceSingle(),
+                c.getPriceDouble(),
+                c.getClub() != null ? c.getClub().getId() : null,
+                c.getClub() != null ? c.getClub().getName() : null
+        );
     }
 }

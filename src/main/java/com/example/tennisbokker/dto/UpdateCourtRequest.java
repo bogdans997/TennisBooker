@@ -1,15 +1,15 @@
 package com.example.tennisbokker.dto;
 
 import com.example.tennisbokker.entity.enums.SurfaceType;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
 
 import java.math.BigDecimal;
 
-public record CreateCourtRequest(
+public record UpdateCourtRequest(
         @NotBlank String name,
         SurfaceType surfaceType,
-        BigDecimal priceSingle,
-        BigDecimal priceDouble
+        @DecimalMin("0.0") BigDecimal priceSingle,
+        @DecimalMin("0.0") BigDecimal priceDouble
 ) {
 }

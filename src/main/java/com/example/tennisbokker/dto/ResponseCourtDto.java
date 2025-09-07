@@ -1,12 +1,14 @@
 package com.example.tennisbokker.dto;
 
+import com.example.tennisbokker.entity.enums.SurfaceType;
+
 import java.math.BigDecimal;
 import java.util.UUID;
 
 public record ResponseCourtDto(
         UUID id,
         String name,
-        String surfaceType,
+        SurfaceType surfaceType,
         BigDecimal priceSingle,
         BigDecimal priceDouble,
         UUID clubId,

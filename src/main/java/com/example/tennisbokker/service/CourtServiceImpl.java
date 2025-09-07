@@ -2,11 +2,13 @@ package com.example.tennisbokker.service;
 
 import com.example.tennisbokker.dto.CreateCourtRequest;
 import com.example.tennisbokker.dto.ResponseCourtDto;
+import com.example.tennisbokker.dto.UpdateCourtRequest;
 import com.example.tennisbokker.entity.Club;
 import com.example.tennisbokker.entity.Court;
 import com.example.tennisbokker.mapper.CourtMapper;
 import com.example.tennisbokker.repository.ClubRepository;
 import com.example.tennisbokker.repository.CourtRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,30 +44,49 @@ public class CourtServiceImpl implements CourtService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<ResponseCourtDto> findAllByClub(UUID clubId) {
+        return courtRepository.findByClub_Id(clubId).stream().map(CourtMapper::toDto).toList();
+    }
+
+    @Override
+    @Transactional
     public ResponseCourtDto createForClub(UUID clubId, CreateCourtRequest req) {
         Club club = clubRepository.findById(clubId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Club not found"));
 
-        Court court = new Court();
-        court.setName(req.name());
-        court.setSurfaceType(req.surfaceType());
-        court.setPriceSingle(req.priceSingle());
-        court.setPriceDouble(req.priceDouble());
-        court.setClub(club);                    // <-- attach the club
+        if (courtRepository.existsByClub_IdAndNameIgnoreCase(clubId, req.name())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Court name already exists for this club");
+        }
 
-        Court saved = courtRepository.save(court);
-        return CourtMapper.toDto(saved);
+        Court court = Court.builder()
+                .name(req.name())
+                .surfaceType(req.surfaceType())
+                .priceSingle(req.priceSingle())
+                .priceDouble(req.priceDouble())
+                .club(club)
+                .build();
+
+        return CourtMapper.toDto(courtRepository.save(court));
     }
 
     @Override
-    public ResponseCourtDto update(UUID id, CreateCourtRequest req, UUID clubId) {
+    @Transactional
+    public ResponseCourtDto update(UUID id, UpdateCourtRequest req, UUID clubId) {
         Court court = courtRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Court not found"));
 
-        if (clubId != null) {
+        if (clubId != null && (court.getClub() == null || !clubId.equals(court.getClub().getId()))) {
             Club club = clubRepository.findById(clubId)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Club not found"));
             court.setClub(club);
+        }
+
+        // If name changes, re-check uniqueness within the (possibly new) club
+        UUID effectiveClubId = court.getClub().getId();
+        if (!court.getName().equalsIgnoreCase(req.name())
+                && courtRepository.existsByClub_IdAndNameIgnoreCase(effectiveClubId, req.name())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Court name already exists for this club");
         }
 
         court.setName(req.name());
@@ -77,7 +98,12 @@ public class CourtServiceImpl implements CourtService {
     }
 
     @Override
+    @Transactional
     public void delete(UUID id) {
-        courtRepository.deleteById(id);
+        try {
+            courtRepository.deleteById(id);
+        } catch (DataIntegrityViolationException ex) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Cannot delete court referenced by other records");
+        }
     }
 }
