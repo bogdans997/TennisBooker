@@ -1,9 +1,7 @@
 package com.example.tennisbokker.mapper;
 
-import com.example.tennisbokker.dto.CourtDto;
 import com.example.tennisbokker.dto.ResponseCourtDto;
 import com.example.tennisbokker.entity.Court;
-import com.example.tennisbokker.entity.Club;
 
 public final class CourtMapper {
 

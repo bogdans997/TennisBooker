@@ -1,10 +1,18 @@
 package com.example.tennisbokker.controller;
 
+import com.example.tennisbokker.dto.UserCreateRequest;
+import com.example.tennisbokker.dto.UserResponseDto;
+import com.example.tennisbokker.dto.UserUpdateRequest;
 import com.example.tennisbokker.entity.User;
+import com.example.tennisbokker.entity.enums.Role;
 import com.example.tennisbokker.service.UserService;
+import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,30 +27,36 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable UUID id) {
-        User user = userService.findById(id);
-        return user != null ? ResponseEntity.ok(user) : ResponseEntity.notFound().build();
+    public ResponseEntity<UserResponseDto> getById(@PathVariable UUID id) {
+        return ResponseEntity.ok(userService.findById(id));
     }
 
     @GetMapping
-    public List<User> getAllUsers() {
-        return userService.findAll();
+    public ResponseEntity<Page<UserResponseDto>> getAll(
+            @RequestParam(required = false) Role role,
+            Pageable pageable
+    ) {
+        return ResponseEntity.ok(userService.findAll(role, pageable));
     }
 
     @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody User user) {
-        User created = userService.create(user);
-        return ResponseEntity.ok(created);
+    public ResponseEntity<UserResponseDto> create(@Valid @RequestBody UserCreateRequest request) {
+        UserResponseDto created = userService.create(request);
+        return ResponseEntity
+                .created(URI.create("/api/v1/users/" + created.id()))
+                .body(created);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable UUID id, @RequestBody User user) {
-        User updated = userService.update(id, user);
-        return updated != null ? ResponseEntity.ok(updated) : ResponseEntity.notFound().build();
+    public ResponseEntity<UserResponseDto> update(
+            @PathVariable UUID id,
+            @Valid @RequestBody UserUpdateRequest request
+    ) {
+        return ResponseEntity.ok(userService.update(id, request));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
         userService.delete(id);
         return ResponseEntity.noContent().build();
     }
