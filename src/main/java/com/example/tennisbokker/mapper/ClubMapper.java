@@ -1,35 +1,44 @@
 package com.example.tennisbokker.mapper;
 
-import com.example.tennisbokker.dto.ResponseClubDto;
-import com.example.tennisbokker.dto.CreateClubRequest;
+import com.example.tennisbokker.dto.ClubCreateRequest;
+import com.example.tennisbokker.dto.ClubResponseDto;
+import com.example.tennisbokker.dto.ClubUpdateRequest;
 import com.example.tennisbokker.entity.Club;
 import com.example.tennisbokker.entity.User;
 
-public class ClubMapper {
-    public static ResponseClubDto toDto(Club club) {
-        if (club == null) return null;
-        ResponseClubDto dto = new ResponseClubDto();
-        dto.setId(club.getId());
-        dto.setName(club.getName());
-        dto.setLocation(club.getLocation());
-        dto.setWorkingHours(club.getWorkingHours());
-        dto.setDescription(club.getDescription());
-        dto.setOwnerFullName(club.getOwner() != null ? club.getOwner().getFullName() : null);
-        return dto;
+public final class ClubMapper {
+    private ClubMapper() {
     }
 
-    public static Club toEntity(CreateClubRequest dto) {
-        if (dto == null) return null;
-        Club club = new Club();
-        club.setName(dto.getName());
-        club.setLocation(dto.getLocation());
-        club.setWorkingHours(dto.getWorkingHours());
-        club.setDescription(dto.getDescription());
-        if (dto.getOwnerId() != null) {
-            User owner = new User();
-            owner.setId(dto.getOwnerId());
-            club.setOwner(owner);
+    public static Club fromCreate(ClubCreateRequest r, User owner) {
+        return Club.builder()
+                .name(r.name())
+                .location(r.location())
+                .workingHours(r.workingHours())
+                .description(r.description())
+                .owner(owner)
+                .build();
     }
-        return club;
+
+    public static void applyUpdate(Club c, ClubUpdateRequest r) {
+        c.setName(r.name());
+        c.setLocation(r.location());
+        c.setWorkingHours(r.workingHours());
+        c.setDescription(r.description());
+    }
+
+    public static ClubResponseDto toResponse(Club c) {
+        return new ClubResponseDto(
+                c.getId(),
+                c.getName(),
+                c.getLocation(),
+                c.getWorkingHours(),
+                c.getDescription(),
+                c.getOwner() != null ? c.getOwner().getId() : null,
+                c.getOwner() != null ? c.getOwner().getFullName() : null,
+                c.getCourts() != null ? c.getCourts().size() : 0,
+                c.getCreatedAt(),
+                c.getUpdatedAt()
+        );
     }
 }

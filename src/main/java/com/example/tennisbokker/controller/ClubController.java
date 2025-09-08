@@ -1,13 +1,16 @@
 package com.example.tennisbokker.controller;
 
-import com.example.tennisbokker.dto.ResponseClubDto;
-import com.example.tennisbokker.dto.CreateClubRequest;
-import com.example.tennisbokker.entity.Club;
+import com.example.tennisbokker.dto.ClubCreateRequest;
+import com.example.tennisbokker.dto.ClubResponseDto;
+import com.example.tennisbokker.dto.ClubUpdateRequest;
 import com.example.tennisbokker.service.ClubService;
+import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.net.URI;
 import java.util.UUID;
 
 @RestController
@@ -21,29 +24,37 @@ public class ClubController {
     }
 
     @GetMapping("/{id}")
-    public ResponseClubDto getClubById(@PathVariable UUID id) {
-        return clubService.findById(id);
+    public ResponseEntity<ClubResponseDto> getById(@PathVariable UUID id) {
+        return ResponseEntity.ok(clubService.findById(id));
     }
 
     @GetMapping
-    public List<ResponseClubDto> getAllClubs() {
-        return clubService.findAll();
+    public ResponseEntity<Page<ClubResponseDto>> list(
+            @RequestParam(required = false) UUID ownerId,
+            @RequestParam(required = false) String q,
+            Pageable pageable
+    ) {
+        return ResponseEntity.ok(clubService.findAll(ownerId, q, pageable));
     }
 
     @PostMapping
-    public ResponseEntity<Club> createClub(@RequestBody CreateClubRequest createClubRequest) {
-        Club created = clubService.create(createClubRequest);
-        return ResponseEntity.ok(created);
+    public ResponseEntity<ClubResponseDto> create(@Valid @RequestBody ClubCreateRequest request) {
+        ClubResponseDto created = clubService.create(request);
+        return ResponseEntity
+                .created(URI.create("/api/v1/clubs/" + created.id()))
+                .body(created);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Club> updateClub(@PathVariable UUID id, @RequestBody Club club) {
-        Club updated = clubService.update(id, club);
-        return updated != null ? ResponseEntity.ok(updated) : ResponseEntity.notFound().build();
+    public ResponseEntity<ClubResponseDto> update(
+            @PathVariable UUID id,
+            @Valid @RequestBody ClubUpdateRequest request
+    ) {
+        return ResponseEntity.ok(clubService.update(id, request));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteClub(@PathVariable UUID id) {
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
         clubService.delete(id);
         return ResponseEntity.noContent().build();
     }
