@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -20,7 +21,6 @@ public interface MatchResultRepository extends JpaRepository<MatchResult, UUID> 
 
     boolean existsByAppointment_Id(UUID appointmentId);
 
-    // Fetch graph to avoid N+1 / Lazy problems during mapping
     @EntityGraph(attributePaths = {
             "appointment",
             "appointment.court",
@@ -36,7 +36,10 @@ public interface MatchResultRepository extends JpaRepository<MatchResult, UUID> 
         and a.startTime >= :from and a.startTime < :to
       order by a.startTime desc
     """)
-    Page<MatchResult> findUserTimeline(UUID userId, LocalDateTime from, LocalDateTime to, Pageable pageable);
+    Page<MatchResult> findUserTimeline(@Param("userId") UUID userId,
+                                       @Param("from") LocalDateTime from,
+                                       @Param("to") LocalDateTime to,
+                                       Pageable pageable);
 
     @EntityGraph(attributePaths = {
             "appointment",
@@ -52,5 +55,7 @@ public interface MatchResultRepository extends JpaRepository<MatchResult, UUID> 
         and (:clubId is null or a.court.club.id = :clubId)
       order by a.startTime asc
     """)
-    List<MatchResult> findByRange(LocalDateTime from, LocalDateTime to, UUID clubId);
+    List<MatchResult> findByRange(@Param("from") LocalDateTime from,
+                                  @Param("to") LocalDateTime to,
+                                  @Param("clubId") UUID clubId);
 }

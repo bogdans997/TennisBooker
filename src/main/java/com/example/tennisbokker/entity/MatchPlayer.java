@@ -2,9 +2,7 @@ package com.example.tennisbokker.entity;
 
 import com.example.tennisbokker.entity.enums.TeamSide;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.UUID;
 
@@ -13,9 +11,9 @@ import java.util.UUID;
         uniqueConstraints = {
                 @UniqueConstraint(name = "uk_match_player_unique", columnNames = {"match_result_id", "player_id"})
         })
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor @Builder
+@ToString(exclude = {"matchResult", "player"})
 public class MatchPlayer {
 
     @Id
@@ -34,7 +32,6 @@ public class MatchPlayer {
     @Column(nullable = false, length = 8)
     private TeamSide team; // TEAM_A or TEAM_B
 
-    // 1 or 2 (for doubles); for singles you'll only use slot=1 on each team
     @Column(nullable = false)
-    private Integer slot;
+    private Integer slot;  // 1 or 2
 }

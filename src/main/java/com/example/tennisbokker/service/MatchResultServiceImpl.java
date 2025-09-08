@@ -1,6 +1,6 @@
 package com.example.tennisbokker.service;
 
-import com.example.tennisbokker.dto.CreateOrUpdateMatchResultRequest;
+import com.example.tennisbokker.dto.MatchResultCreateOrUpdateRequest;
 import com.example.tennisbokker.dto.MatchParticipantDto;
 import com.example.tennisbokker.dto.MatchResultResponseDto;
 import com.example.tennisbokker.entity.Appointment;
@@ -9,7 +9,6 @@ import com.example.tennisbokker.entity.MatchResult;
 import com.example.tennisbokker.entity.User;
 import com.example.tennisbokker.entity.enums.AppointmentType;
 import com.example.tennisbokker.mapper.MatchResultMapper;
-import com.example.tennisbokker.repository.AppointmentRepository;
 import com.example.tennisbokker.repository.MatchResultRepository;
 import com.example.tennisbokker.repository.UserRepository;
 import org.springframework.data.domain.Page;
@@ -27,15 +26,14 @@ import java.util.stream.Collectors;
 public class MatchResultServiceImpl implements MatchResultService {
 
     private final MatchResultRepository matchResultRepository;
-    private final AppointmentRepository appointmentRepository;
     private final UserRepository userRepository;
 
-    public MatchResultServiceImpl(MatchResultRepository matchResultRepository, AppointmentRepository appointmentRepository, UserRepository userRepository) {
+    public MatchResultServiceImpl(MatchResultRepository matchResultRepository, UserRepository userRepository) {
         this.matchResultRepository = matchResultRepository;
-        this.appointmentRepository = appointmentRepository;
         this.userRepository = userRepository;
     }
 
+    @Override
     @Transactional(readOnly = true)
     public MatchResultResponseDto findByAppointmentId(UUID appointmentId) {
         MatchResult mr = matchResultRepository.findByAppointment_Id(appointmentId)
@@ -43,6 +41,7 @@ public class MatchResultServiceImpl implements MatchResultService {
         return MatchResultMapper.toDto(mr);
     }
 
+    @Override
     @Transactional(readOnly = true)
     public MatchResultResponseDto findByMatchId(UUID resultId) {
         MatchResult mr = matchResultRepository.findById(resultId)
@@ -50,21 +49,20 @@ public class MatchResultServiceImpl implements MatchResultService {
         return MatchResultMapper.toDto(mr);
     }
 
-    public MatchResultResponseDto update(UUID appointmentId, CreateOrUpdateMatchResultRequest req) {
+    @Override
+    @Transactional
+    public MatchResultResponseDto update(UUID appointmentId, MatchResultCreateOrUpdateRequest req) {
         MatchResult mr = matchResultRepository.findByAppointment_Id(appointmentId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "MatchResult not found"));
 
-        // Basic fields
         mr.setResultText(req.resultText());
         mr.setPhotoUrl(req.photoUrl());
 
-        // Participants handling (optional)
         if (req.participants() != null) {
             Appointment appt = mr.getAppointment();
-            AppointmentType type = appt.getType();
+            var type = appt.getType();
 
-            // Load users and build MatchPlayer list
-            List<MatchPlayer> newList = req.participants().stream()
+            var newList = req.participants().stream()
                     .map(p -> toMatchPlayer(p, mr))
                     .toList();
 
@@ -73,13 +71,35 @@ public class MatchResultServiceImpl implements MatchResultService {
             mr.setParticipants(newList);
         }
 
+        // Managed entity, but explicit save is fine:
+        matchResultRepository.save(mr);
         return MatchResultMapper.toDto(mr);
     }
 
+    @Override
+    @Transactional
     public void delete(UUID appointmentId) {
         MatchResult mr = matchResultRepository.findByAppointment_Id(appointmentId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "MatchResult not found"));
         matchResultRepository.delete(mr);
+    }
+
+    // ... rest unchanged (helpers + listForUser + listRange) ...
+    @Override
+    @Transactional(readOnly = true)
+    public Page<MatchResultResponseDto> listForUser(UUID userId, LocalDateTime from, LocalDateTime to, Pageable pageable) {
+        LocalDateTime f = (from != null) ? from : LocalDateTime.now().minusYears(10);
+        LocalDateTime t = (to   != null) ? to   : LocalDateTime.now().plusYears(1);
+        Page<MatchResult> page = matchResultRepository.findUserTimeline(userId, f, t, pageable);
+        return page.map(MatchResultMapper::toDto);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<MatchResultResponseDto> listRange(LocalDateTime from, LocalDateTime to, UUID clubId) {
+        LocalDateTime f = (from != null) ? from : LocalDateTime.now().minusYears(10);
+        LocalDateTime t = (to   != null) ? to   : LocalDateTime.now().plusYears(1);
+        return matchResultRepository.findByRange(f, t, clubId).stream().map(MatchResultMapper::toDto).toList();
     }
 
     private MatchPlayer toMatchPlayer(MatchParticipantDto dto, MatchResult mr) {
@@ -139,20 +159,5 @@ public class MatchResultServiceImpl implements MatchResultService {
                 });
             }
         }
-    }
-
-    @Transactional(readOnly = true)
-    public Page<MatchResultResponseDto> listForUser(UUID userId, LocalDateTime from, LocalDateTime to, Pageable pageable) {
-        LocalDateTime f = (from != null) ? from : LocalDateTime.now().minusYears(10);
-        LocalDateTime t = (to   != null) ? to   : LocalDateTime.now().plusYears(1);
-        Page<MatchResult> page = matchResultRepository.findUserTimeline(userId, f, t, pageable);
-        return page.map(MatchResultMapper::toDto);
-    }
-
-    @Transactional(readOnly = true)
-    public List<MatchResultResponseDto> listRange(LocalDateTime from, LocalDateTime to, UUID clubId) {
-        LocalDateTime f = (from != null) ? from : LocalDateTime.now().minusYears(10);
-        LocalDateTime t = (to   != null) ? to   : LocalDateTime.now().plusYears(1);
-        return matchResultRepository.findByRange(f, t, clubId).stream().map(MatchResultMapper::toDto).toList();
     }
 }

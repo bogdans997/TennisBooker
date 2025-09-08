@@ -1,6 +1,6 @@
 package com.example.tennisbokker.controller;
 
-import com.example.tennisbokker.dto.CreateOrUpdateMatchResultRequest;
+import com.example.tennisbokker.dto.MatchResultCreateOrUpdateRequest;
 import com.example.tennisbokker.dto.MatchResultResponseDto;
 import com.example.tennisbokker.service.MatchResultService;
 import jakarta.validation.Valid;
@@ -34,7 +34,7 @@ public class MatchResultController {
     @PutMapping("/appointments/{appointmentId}/match-result")
     public ResponseEntity<MatchResultResponseDto> update(
             @PathVariable UUID appointmentId,
-            @Valid @RequestBody CreateOrUpdateMatchResultRequest body) {
+            @Valid @RequestBody MatchResultCreateOrUpdateRequest body) {
         return ResponseEntity.ok(service.update(appointmentId, body));
     }
 

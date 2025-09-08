@@ -6,7 +6,7 @@ import com.example.tennisbokker.entity.MatchResult;
 
 import java.util.List;
 
-public class MatchResultMapper {
+public final class MatchResultMapper {
     public static MatchResultResponseDto toDto(MatchResult mr) {
         var appt = mr.getAppointment();
         var court = appt != null ? appt.getCourt() : null;
