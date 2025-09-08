@@ -1,18 +1,14 @@
 package com.example.tennisbokker.mapper;
 
-import com.example.tennisbokker.dto.AppointmentDto;
-import com.example.tennisbokker.dto.ResponseAppointmentDto;
+import com.example.tennisbokker.dto.AppointmentResponseDto;
 import com.example.tennisbokker.entity.Appointment;
-import com.example.tennisbokker.entity.Court;
-import com.example.tennisbokker.entity.User;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+public final class AppointmentMapper {
+    private AppointmentMapper() {
+    }
 
-public class AppointmentMapper {
-    public static ResponseAppointmentDto toDto(Appointment a) {
-        return new ResponseAppointmentDto(
+    public static AppointmentResponseDto toResponse(Appointment a) {
+        return new AppointmentResponseDto(
                 a.getId(),
                 a.getCourt() != null ? a.getCourt().getId() : null,
                 (a.getCourt() != null && a.getCourt().getClub() != null) ? a.getCourt().getClub().getId() : null,
@@ -24,7 +20,9 @@ public class AppointmentMapper {
                 a.getStartTime(),
                 a.getEndTime(),
                 a.getType(),
-                a.getPrice()
+                a.getPrice(),
+                a.getCreatedAt(),
+                a.getUpdatedAt()
         );
     }
 }

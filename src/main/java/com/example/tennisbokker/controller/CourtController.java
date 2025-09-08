@@ -1,12 +1,10 @@
 package com.example.tennisbokker.controller;
 
-import com.example.tennisbokker.dto.CreateCourtRequest;
-import com.example.tennisbokker.dto.ResponseCourtDto;
-import com.example.tennisbokker.dto.UpdateCourtRequest;
-import com.example.tennisbokker.entity.Court;
+import com.example.tennisbokker.dto.CourtCreateRequest;
+import com.example.tennisbokker.dto.CourtResponseDto;
+import com.example.tennisbokker.dto.CourtUpdateRequest;
 import com.example.tennisbokker.service.CourtService;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -26,42 +24,42 @@ public class CourtController {
     }
 
     @GetMapping("/courts")
-    public List<ResponseCourtDto> getAllCourts() {
+    public List<CourtResponseDto> getAllCourts() {
         return courtService.findAll();
     }
 
     // GET /courts/{id}
     @GetMapping("/courts/{id}")
-    public ResponseCourtDto getCourtById(@PathVariable UUID id) {
+    public CourtResponseDto getCourtById(@PathVariable UUID id) {
         return courtService.findById(id);
     }
 
     // GET /clubs/{clubId}/courts
     @GetMapping("/clubs/{clubId}/courts")
-    public List<ResponseCourtDto> getCourtsByClub(@PathVariable UUID clubId) {
+    public List<CourtResponseDto> getCourtsByClub(@PathVariable UUID clubId) {
         return courtService.findAllByClub(clubId);
     }
 
     // POST /clubs/{clubId}/courts
     @PostMapping("/clubs/{clubId}/courts")
-    public ResponseEntity<ResponseCourtDto> createCourt(
+    public ResponseEntity<CourtResponseDto> createCourt(
             @PathVariable UUID clubId,
-            @Valid @RequestBody CreateCourtRequest req,
+            @Valid @RequestBody CourtCreateRequest req,
             UriComponentsBuilder uriBuilder
     ) {
-        ResponseCourtDto created = courtService.createForClub(clubId, req);
+        CourtResponseDto created = courtService.createForClub(clubId, req);
         URI location = uriBuilder.path("/courts/{id}").buildAndExpand(created.id()).toUri();
         return ResponseEntity.created(location).body(created);
     }
 
     // PUT /courts/{id}?clubId=...
     @PutMapping("/courts/{id}")
-    public ResponseEntity<ResponseCourtDto> updateCourt(
+    public ResponseEntity<CourtResponseDto> updateCourt(
             @PathVariable UUID id,
-            @Valid @RequestBody UpdateCourtRequest req,
+            @Valid @RequestBody CourtUpdateRequest req,
             @RequestParam(required = false) UUID clubId
     ) {
-        ResponseCourtDto updated = courtService.update(id, req, clubId);
+        CourtResponseDto updated = courtService.update(id, req, clubId);
         return ResponseEntity.ok(updated);
     }
 

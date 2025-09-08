@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-public record ResponseMatchResultDto(
+public record MatchResultResponseDto(
         UUID id,
         UUID appointmentId,
         UUID courtId,

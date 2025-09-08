@@ -1,22 +1,22 @@
 package com.example.tennisbokker.mapper;
 
-import com.example.tennisbokker.dto.ResponseMatchResultDto;
+import com.example.tennisbokker.dto.MatchResultResponseDto;
 import com.example.tennisbokker.entity.MatchPlayer;
 import com.example.tennisbokker.entity.MatchResult;
 
 import java.util.List;
 
 public class MatchResultMapper {
-    public static ResponseMatchResultDto toDto(MatchResult mr) {
+    public static MatchResultResponseDto toDto(MatchResult mr) {
         var appt = mr.getAppointment();
         var court = appt != null ? appt.getCourt() : null;
         var club = (court != null) ? court.getClub() : null;
 
-        List<ResponseMatchResultDto.ParticipantOut> parts = mr.getParticipants().stream()
+        List<MatchResultResponseDto.ParticipantOut> parts = mr.getParticipants().stream()
                 .map(MatchResultMapper::toParticipant)
                 .toList();
 
-        return new ResponseMatchResultDto(
+        return new MatchResultResponseDto(
                 mr.getId(),
                 appt != null ? appt.getId() : null,
                 court != null ? court.getId() : null,
@@ -29,9 +29,9 @@ public class MatchResultMapper {
         );
     }
 
-    private static ResponseMatchResultDto.ParticipantOut toParticipant(MatchPlayer p) {
+    private static MatchResultResponseDto.ParticipantOut toParticipant(MatchPlayer p) {
         var u = p.getPlayer();
-        return new ResponseMatchResultDto.ParticipantOut(
+        return new MatchResultResponseDto.ParticipantOut(
                 u != null ? u.getId() : null,
                 u != null ? u.getFullName() : null,
                 p.getTeam(),

@@ -1,8 +1,8 @@
 package com.example.tennisbokker.service;
 
-import com.example.tennisbokker.dto.CreateCourtRequest;
-import com.example.tennisbokker.dto.ResponseCourtDto;
-import com.example.tennisbokker.dto.UpdateCourtRequest;
+import com.example.tennisbokker.dto.CourtCreateRequest;
+import com.example.tennisbokker.dto.CourtResponseDto;
+import com.example.tennisbokker.dto.CourtUpdateRequest;
 import com.example.tennisbokker.entity.Club;
 import com.example.tennisbokker.entity.Court;
 import com.example.tennisbokker.mapper.CourtMapper;
@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -31,7 +30,7 @@ public class CourtServiceImpl implements CourtService {
 
     @Override
     @Transactional(readOnly = true)
-    public ResponseCourtDto findById(UUID id) {
+    public CourtResponseDto findById(UUID id) {
         Court court = courtRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Court not found"));
         return CourtMapper.toDto(court);
@@ -39,19 +38,19 @@ public class CourtServiceImpl implements CourtService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ResponseCourtDto> findAll() {
+    public List<CourtResponseDto> findAll() {
         return courtRepository.findAll().stream().map(CourtMapper::toDto).toList();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<ResponseCourtDto> findAllByClub(UUID clubId) {
+    public List<CourtResponseDto> findAllByClub(UUID clubId) {
         return courtRepository.findByClub_Id(clubId).stream().map(CourtMapper::toDto).toList();
     }
 
     @Override
     @Transactional
-    public ResponseCourtDto createForClub(UUID clubId, CreateCourtRequest req) {
+    public CourtResponseDto createForClub(UUID clubId, CourtCreateRequest req) {
         Club club = clubRepository.findById(clubId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Club not found"));
 
@@ -72,7 +71,7 @@ public class CourtServiceImpl implements CourtService {
 
     @Override
     @Transactional
-    public ResponseCourtDto update(UUID id, UpdateCourtRequest req, UUID clubId) {
+    public CourtResponseDto update(UUID id, CourtUpdateRequest req, UUID clubId) {
         Court court = courtRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Court not found"));
 

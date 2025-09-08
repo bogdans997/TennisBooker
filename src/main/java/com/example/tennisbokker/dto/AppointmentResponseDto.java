@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-public record ResponseAppointmentDto(
+public record AppointmentResponseDto(
         UUID id,
         UUID courtId,
         UUID clubId,
@@ -18,6 +18,8 @@ public record ResponseAppointmentDto(
         LocalDateTime startTime,
         LocalDateTime endTime,
         AppointmentType type,
-        BigDecimal price
+        BigDecimal price,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
 ) {
 }

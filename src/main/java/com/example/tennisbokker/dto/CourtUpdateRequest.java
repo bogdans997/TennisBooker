@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 
 import java.math.BigDecimal;
 
-public record UpdateCourtRequest(
+public record CourtUpdateRequest(
         @NotBlank String name,
         SurfaceType surfaceType,
         @DecimalMin("0.0") BigDecimal priceSingle,

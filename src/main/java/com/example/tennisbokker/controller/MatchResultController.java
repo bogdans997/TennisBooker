@@ -1,8 +1,7 @@
 package com.example.tennisbokker.controller;
 
 import com.example.tennisbokker.dto.CreateOrUpdateMatchResultRequest;
-import com.example.tennisbokker.dto.ResponseMatchResultDto;
-import com.example.tennisbokker.entity.MatchResult;
+import com.example.tennisbokker.dto.MatchResultResponseDto;
 import com.example.tennisbokker.service.MatchResultService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -28,12 +27,12 @@ public class MatchResultController {
 
     // --- Single item endpoints bound to an appointment ---
     @GetMapping("/appointments/{appointmentId}/match-result")
-    public ResponseEntity<ResponseMatchResultDto> get(@PathVariable UUID appointmentId) {
+    public ResponseEntity<MatchResultResponseDto> get(@PathVariable UUID appointmentId) {
         return ResponseEntity.ok(service.findByAppointmentId(appointmentId));
     }
 
     @PutMapping("/appointments/{appointmentId}/match-result")
-    public ResponseEntity<ResponseMatchResultDto> update(
+    public ResponseEntity<MatchResultResponseDto> update(
             @PathVariable UUID appointmentId,
             @Valid @RequestBody CreateOrUpdateMatchResultRequest body) {
         return ResponseEntity.ok(service.update(appointmentId, body));
@@ -47,7 +46,7 @@ public class MatchResultController {
 
     // --- Timeline for the authenticated user (newest → oldest) ---
     @GetMapping("/me/match-results")
-    public Page<ResponseMatchResultDto> myResults(
+    public Page<MatchResultResponseDto> myResults(
             @AuthenticationPrincipal(expression = "id") UUID me,
             @RequestParam(required = false) LocalDateTime from,
             @RequestParam(required = false) LocalDateTime to,
@@ -60,7 +59,7 @@ public class MatchResultController {
 
     // --- Timeline for any user (admin / debug) ---
     @GetMapping("/users/{userId}/match-results")
-    public Page<ResponseMatchResultDto> userResults(
+    public Page<MatchResultResponseDto> userResults(
             @PathVariable UUID userId,
             @RequestParam(required = false) LocalDateTime from,
             @RequestParam(required = false) LocalDateTime to,
@@ -73,7 +72,7 @@ public class MatchResultController {
 
     // --- Range endpoint for calendar feeds ---
     @GetMapping("/match-results")
-    public List<ResponseMatchResultDto> resultsInRange(
+    public List<MatchResultResponseDto> resultsInRange(
             @RequestParam(required = false) LocalDateTime from,
             @RequestParam(required = false) LocalDateTime to,
             @RequestParam(required = false) UUID clubId) {
