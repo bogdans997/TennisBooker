@@ -1,0 +1,65 @@
+services:
+  db:
+    image: postgres:16
+    container_name: tennisbooker-db
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL","pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tennisbooker-app
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Spring profile & server
+      SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8080
+
+      # DB
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${DDL_AUTO}
+      SPRING_JPA_PROPERTIES_HIBERNATE_JDBC_TIME_ZONE: UTC
+
+      # App config (CORS, Booking policies, Firebase Project ID)
+      APP_SECURITY_CORS_ALLOWED_ORIGINS: ${CORS_ORIGINS}
+      APP_BOOKING_ENFORCE_ONE_UPCOMING: ${BOOKING_ONE_UPCOMING}
+      APP_BOOKING_CHECK_COACH_OVERLAP: ${BOOKING_CHECK_COACH}
+      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID}
+
+      # Firebase Admin SDK
+      GOOGLE_APPLICATION_CREDENTIALS: /run/secrets/firebase/sa.json
+    volumes:
+      - ./secrets/tenisbooker-firebase-adminsdk-fbsvc-e42d522955.json:/run/secrets/firebase/sa.json:ro
+    ports:
+      - "8080:8080"
+
+  pgadmin:
+    image: dpage/pgadmin4:8
+    container_name: tennisbooker-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+    ports:
+      - "5050:80"
+    depends_on:
+      db:
+        condition: service_started
+
+volumes:
+  db_data:

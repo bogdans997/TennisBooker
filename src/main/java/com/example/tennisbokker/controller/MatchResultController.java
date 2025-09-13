@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,11 +27,13 @@ public class MatchResultController {
     }
 
     // --- Single item endpoints bound to an appointment ---
+    @PreAuthorize("@guards.isAdmin(authentication) or @guards.ownsAppointment(authentication, #appointmentId)")
     @GetMapping("/appointments/{appointmentId}/match-result")
     public ResponseEntity<MatchResultResponseDto> get(@PathVariable UUID appointmentId) {
         return ResponseEntity.ok(service.findByAppointmentId(appointmentId));
     }
 
+    @PreAuthorize("@guards.isAdmin(authentication) or @guards.ownsAppointment(authentication, #appointmentId)")
     @PutMapping("/appointments/{appointmentId}/match-result")
     public ResponseEntity<MatchResultResponseDto> update(
             @PathVariable UUID appointmentId,
@@ -38,6 +41,7 @@ public class MatchResultController {
         return ResponseEntity.ok(service.update(appointmentId, body));
     }
 
+    @PreAuthorize("@guards.isAdmin(authentication) or @guards.ownsAppointment(authentication, #appointmentId)")
     @DeleteMapping("/appointments/{appointmentId}/match-result")
     public ResponseEntity<Void> delete(@PathVariable UUID appointmentId) {
         service.delete(appointmentId);
@@ -45,6 +49,7 @@ public class MatchResultController {
     }
 
     // --- Timeline for the authenticated user (newest → oldest) ---
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/me/match-results")
     public Page<MatchResultResponseDto> myResults(
             @AuthenticationPrincipal(expression = "id") UUID me,
@@ -58,6 +63,7 @@ public class MatchResultController {
     }
 
     // --- Timeline for any user (admin / debug) ---
+    @PreAuthorize("@guards.isAdmin(authentication)")
     @GetMapping("/users/{userId}/match-results")
     public Page<MatchResultResponseDto> userResults(
             @PathVariable UUID userId,
@@ -71,6 +77,7 @@ public class MatchResultController {
     }
 
     // --- Range endpoint for calendar feeds ---
+    @PreAuthorize("@guards.isAdmin(authentication)")
     @GetMapping("/match-results")
     public List<MatchResultResponseDto> resultsInRange(
             @RequestParam(required = false) LocalDateTime from,

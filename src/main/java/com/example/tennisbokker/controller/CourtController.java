@@ -6,6 +6,7 @@ import com.example.tennisbokker.dto.CourtUpdateRequest;
 import com.example.tennisbokker.service.CourtService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -41,6 +42,7 @@ public class CourtController {
     }
 
     // POST /clubs/{clubId}/courts
+    @PreAuthorize("@guards.isAdmin(authentication) or @guards.ownsClub(authentication, #clubId)")
     @PostMapping("/clubs/{clubId}/courts")
     public ResponseEntity<CourtResponseDto> createCourt(
             @PathVariable UUID clubId,
@@ -53,6 +55,10 @@ public class CourtController {
     }
 
     // PUT /courts/{id}?clubId=...
+    @PreAuthorize("""
+        @guards.isAdmin(authentication) or
+        ( #clubId != null ? @guards.ownsClub(authentication, #clubId) : @guards.ownsCourt(authentication, #id) )
+    """)
     @PutMapping("/courts/{id}")
     public ResponseEntity<CourtResponseDto> updateCourt(
             @PathVariable UUID id,
@@ -64,6 +70,7 @@ public class CourtController {
     }
 
     // DELETE /courts/{id}
+    @PreAuthorize("@guards.isAdmin(authentication) or @guards.ownsCourt(authentication, #id)")
     @DeleteMapping("/courts/{id}")
     public ResponseEntity<Void> deleteCourt(@PathVariable UUID id) {
         courtService.delete(id);

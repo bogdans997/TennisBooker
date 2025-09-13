@@ -3,17 +3,16 @@ package com.example.tennisbokker.controller;
 import com.example.tennisbokker.dto.UserCreateRequest;
 import com.example.tennisbokker.dto.UserResponseDto;
 import com.example.tennisbokker.dto.UserUpdateRequest;
-import com.example.tennisbokker.entity.User;
 import com.example.tennisbokker.entity.enums.Role;
 import com.example.tennisbokker.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -26,11 +25,13 @@ public class UserController {
         this.userService = userService;
     }
 
+    @PreAuthorize("@guards.isAdmin(authentication) or @guards.isSelf(authentication, #id)")
     @GetMapping("/{id}")
     public ResponseEntity<UserResponseDto> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(userService.findById(id));
     }
 
+    @PreAuthorize("@guards.isAdmin(authentication)")
     @GetMapping
     public ResponseEntity<Page<UserResponseDto>> getAll(
             @RequestParam(required = false) Role role,
@@ -39,6 +40,7 @@ public class UserController {
         return ResponseEntity.ok(userService.findAll(role, pageable));
     }
 
+    @PreAuthorize("@guards.isAdmin(authentication) or @guards.isSelf(authentication, #id)")
     @PostMapping
     public ResponseEntity<UserResponseDto> create(@Valid @RequestBody UserCreateRequest request) {
         UserResponseDto created = userService.create(request);
@@ -47,6 +49,7 @@ public class UserController {
                 .body(created);
     }
 
+    @PreAuthorize("@guards.isAdmin(authentication) or @guards.isSelf(authentication, #id)")
     @PutMapping("/{id}")
     public ResponseEntity<UserResponseDto> update(
             @PathVariable UUID id,
@@ -55,6 +58,7 @@ public class UserController {
         return ResponseEntity.ok(userService.update(id, request));
     }
 
+    @PreAuthorize("@guards.isAdmin(authentication)")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         userService.delete(id);

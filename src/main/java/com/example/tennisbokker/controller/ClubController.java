@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -23,11 +24,13 @@ public class ClubController {
         this.clubService = clubService;
     }
 
+    @PreAuthorize("hasAnyRole('OWNER','ADMIN')")
     @GetMapping("/{id}")
     public ResponseEntity<ClubResponseDto> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(clubService.findById(id));
     }
 
+    @PreAuthorize("hasAnyRole('OWNER','ADMIN')")
     @GetMapping
     public ResponseEntity<Page<ClubResponseDto>> list(
             @RequestParam(required = false) UUID ownerId,
@@ -37,6 +40,7 @@ public class ClubController {
         return ResponseEntity.ok(clubService.findAll(ownerId, q, pageable));
     }
 
+    @PreAuthorize("hasAnyRole('OWNER','ADMIN')")
     @PostMapping
     public ResponseEntity<ClubResponseDto> create(@Valid @RequestBody ClubCreateRequest request) {
         ClubResponseDto created = clubService.create(request);
@@ -45,6 +49,7 @@ public class ClubController {
                 .body(created);
     }
 
+    @PreAuthorize("@guards.isAdmin(authentication) or @guards.ownsClub(authentication, #id)")
     @PutMapping("/{id}")
     public ResponseEntity<ClubResponseDto> update(
             @PathVariable UUID id,
@@ -53,6 +58,7 @@ public class ClubController {
         return ResponseEntity.ok(clubService.update(id, request));
     }
 
+    @PreAuthorize("@guards.isAdmin(authentication) or @guards.ownsClub(authentication, #id)")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         clubService.delete(id);
